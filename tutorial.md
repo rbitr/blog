@@ -69,6 +69,8 @@ X = tf.constant(X,dtype=tf.float32)
 y = tf.constant(y,dtype=tf.float32)
 ```
 
+__Model__
+
 We can make the same linear model as above linear model (that gives a probability as an output) by writing a function directly:
 
 ```python
@@ -95,6 +97,8 @@ array([0.5210591 , 0.9974555 , 0.63289624, 0.8091879 , 0.846755  ,
        0.71606183, 0.03832325, 0.95016336, 0.8294958 , 0.17246142],
       dtype=float32)>
 ```
+
+__Loss__
 
 Here we explicitly write out the formula for binary cross entropy. To be sure, it is more work and more error prone, and there may be problems running it on a GPU, but we can see exactly what it is doing. We can also create a simple accuracy function:
 
@@ -124,6 +128,8 @@ Out[]: 0.653
 
 ```
 
+__Gradients__
+
 So the only thing we really want to use TF for at this point is to get the gradients. This is done using a `tf.GradientTape()` to watch the model parameters as we calculate the loss:
 
 ```python
@@ -148,6 +154,8 @@ Out[]: (<tf.Tensor: shape=(), dtype=float32, numpy=0.6823132>,
 
 Above we see the loss repeated again (the first element of the tuple), and gradients for the three parameters. 
 
+__Training__
+
 For training, we do the normal thing of repeatedly calculating gradients, and moving the parameters incrementally against them.
 
 ```python
@@ -170,8 +178,37 @@ print (f"loss is {loss_plot[-1]}")
 
 ![](loss_manual_gd.png "Loss curve") 
 
+For completeness, after 2000 iterations, we have 
 
-## Backing off
+```python
+W = 
+<tf.Tensor: shape=(2, 1), dtype=float32, numpy=
+array([[-1.521596 ],
+       [-1.7513798]], dtype=float32)>
+
+b = 
+<tf.Tensor: shape=(), dtype=float32, numpy=0.17433676>
+```
+
+and get the following separation of the classes:
+
+```
+# plot class boundary
+fx = np.arange(-3,3,.1)
+fy = (-b - W[0] * fx) / W[1]
+for k in [0,1]:
+    x = [x[0] for x,l in zip(np.array(X),y) if l==k]
+    label = [x[1] for x,l in zip(np.array(X),y) if l==k]
+    plt.scatter(x,label)
+plt.plot(fx,fy)
+plt.show()
+```
+![](class_separation.png "Class Separation")
+
+(Based on the underlying data distribution, we would have expected that both the weights in `W` were the same and that `b=0`.)
+
+
+## Backing off (Abstracting)
 
 There may be reasons you don't want to write your own layers or optimizer or loss functions. We can trivially add them back in depending on the level we want to work at:
 
